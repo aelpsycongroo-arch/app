@@ -2,6 +2,7 @@ import { useRef } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 import { Button, Card, Field, Input } from '../components/ui';
 import type { Snapshot } from '../db/db';
+import { saveTextFile } from '../platform';
 import { useStore } from '../store/useStore';
 import { useUi } from '../store/ui';
 
@@ -14,13 +15,17 @@ export function SettingsPage() {
   const toast = useUi((s) => s.toast);
   const fileRef = useRef<HTMLInputElement>(null);
 
-  const exportJson = () => {
-    const blob = new Blob([JSON.stringify({ format: 'warehouse-blueprint', version: 1, ...store().exportSnapshot() }, null, 2)], { type: 'application/json' });
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = `warehouse-backup-${new Date().toISOString().slice(0, 10)}.json`;
-    a.click();
-    URL.revokeObjectURL(a.href);
+  const exportJson = async () => {
+    try {
+      await saveTextFile(
+        `warehouse-backup-${new Date().toISOString().slice(0, 10)}.json`,
+        JSON.stringify({ format: 'warehouse-blueprint', version: 1, ...store().exportSnapshot() }, null, 2),
+        'application/json',
+      );
+    } catch (e) {
+      // Closing the share sheet without choosing a target also lands here.
+      if (!String(e).toLowerCase().includes('cancel')) toast(`Export failed: ${e instanceof Error ? e.message : e}`, 'error');
+    }
   };
 
   const importJson = async (file: File | undefined) => {
@@ -86,7 +91,7 @@ export function SettingsPage() {
           record(s), {counts.l} picking list(s). Export a backup to move data to another device.
         </p>
         <div className="flex flex-wrap gap-2">
-          <Button onClick={exportJson}>Export backup (.json)</Button>
+          <Button onClick={() => void exportJson()}>Export backup (.json)</Button>
           <Button onClick={() => fileRef.current?.click()}>Restore backup…</Button>
           <input ref={fileRef} type="file" accept="application/json,.json" className="hidden" onChange={(e) => void importJson(e.target.files?.[0])} />
           <Button

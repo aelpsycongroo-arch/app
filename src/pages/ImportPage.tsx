@@ -15,6 +15,7 @@ import {
 import { SAMPLE_PICKING_CSV } from '../domain/sample';
 import { parseCsvText, parseSpreadsheetFile, type ParsedSheet } from '../domain/spreadsheet';
 import type { Block } from '../domain/types';
+import { saveTextFile } from '../platform';
 import { useImportDraft } from '../store/importDraft';
 import { useActiveWarehouse, useStore } from '../store/useStore';
 import { useUi } from '../store/ui';
@@ -88,13 +89,9 @@ export function ImportPage() {
               {busy ? 'Reading…' : 'Choose file'}
             </Button>
             <Button onClick={() => load('sample-picking-list.csv', parseCsvText(SAMPLE_PICKING_CSV))}>Use sample picking list</Button>
-            <a
-              className="inline-flex items-center rounded-md px-3 py-1.5 text-sm text-indigo-700 hover:underline"
-              href={`data:text/csv;charset=utf-8,${encodeURIComponent(SAMPLE_PICKING_CSV)}`}
-              download="sample-picking-list.csv"
-            >
+            <Button variant="ghost" className="text-indigo-700" onClick={() => void saveTextFile('sample-picking-list.csv', SAMPLE_PICKING_CSV, 'text/csv').catch(() => {})}>
               Download sample CSV
-            </a>
+            </Button>
           </div>
           <input
             ref={fileRef}

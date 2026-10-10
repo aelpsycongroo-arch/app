@@ -21,6 +21,25 @@ On first launch choose **Load sample warehouse** to explore a 24×16 layout (blo
 | `npm test` | Unit tests (Vitest): pathfinding, route ordering, import matching, spreadsheet parsing, IndexedDB persistence |
 | `npm run test:e2e` | End-to-end workflow tests (Playwright). Set `PLAYWRIGHT_CHROMIUM_PATH` to use a preinstalled Chromium instead of `npx playwright install chromium`. |
 
+## Android app (APK)
+
+The app is wrapped for Android with [Capacitor](https://capacitorjs.com/) (`android/` folder, config in `capacitor.config.ts`).
+
+**Install on a phone:** every push to this branch runs the *Android APK* GitHub Actions workflow, which builds the APK and attaches it to the **`apk-latest` release** on the repository's Releases page. Open that page on the phone, download `WarehouseBlueprint.apk`, and open it. Android will ask you to allow *Install unknown apps* for your browser or file manager the first time.
+
+- It is a **debug-signed** build intended for sideloading inside your team, not for the Play Store. The workflow caches its signing key, so newer APKs install as updates and keep the data on the phone. If the cache ever expires (GitHub deletes caches unused for 7 days), the next APK has a different signature: export a backup in Settings, uninstall, install the new APK and restore the backup.
+- All data stays on the phone (the app's own storage). *Export backup* and *Download sample CSV* open Android's share sheet (save to Drive/Files, email, …).
+
+**Build locally** (needs Android Studio / the Android SDK and Java 21):
+
+```bash
+npm run build
+npx cap sync android
+cd android && ./gradlew assembleDebug   # → android/app/build/outputs/apk/debug/app-debug.apk
+```
+
+After changing web code, always run `npm run build && npx cap sync android` before building the APK. The app icon is generated from `assets/` with `npx @capacitor/assets generate --android`.
+
 ## Workflow
 
 1. **Warehouse Map** — a top-down grid editor.
